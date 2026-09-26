@@ -1,0 +1,9 @@
+{
+  "name": "movie-night-report",
+  "version": "1.0.0",
+  "main": "src/App.tsx",
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  }
+}
