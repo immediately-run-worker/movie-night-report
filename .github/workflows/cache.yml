@@ -1,0 +1,109 @@
+# Publishes a pre-cached zip of this repo to its own GitHub Pages on every push
+# to main, so immediately.run can load it fast — without hitting the GitHub API
+# (slow, and rate-limited for anonymous users). immediately.run looks for the
+# zip at https://<owner>.github.io/<repo>/cached_repositories/<branch>.zip — and,
+# for a commit-pinned library mount, cached_repositories/<sha>.zip — and
+# falls back to the API if it's absent.
+#
+# The zip is built by `@immediately-run/cli cache-zip`, which embeds a
+# contribute-manifest sidecar so edits made on immediately.run can still be
+# pushed back to GitHub offline.
+#
+# It also embeds the resolved-dependency LOCKSET and, since R3-567, the dependency
+# CONTENT (--bundle-packages) — so a repo boots without the sandbox having to
+# resolve or fetch its dependencies live. `npm ci` runs first because cache-zip
+# fills the dependency CDN's gaps from `node_modules`; this repo has no lockfile
+# yet, so that step skips gracefully and cache-zip uses the package CDN.
+#
+# Pages was enabled once by hand (`gh api -X POST
+# repos/immediately-run-worker/movie-night-report/pages -f build_type=workflow`),
+# so the `configure-pages` step below only maintains it; its `enablement: true`
+# is a no-op on a repo with Pages already on.
+
+name: Cache for immediately.run
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Allow this workflow to publish to GitHub Pages.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never run two Pages deploys at once; let an in-progress one finish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # Third-party actions are pinned by commit SHA, and the CLI by an exact
+      # version — this workflow holds `pages: write`, so a floating tag
+      # (`@latest`, `@v4`) would let an upstream compromise poison the cache a
+      # repo serves to immediately.run (ZIP_CACHE_AUTOMATION_SPEC §8). Bump
+      # these deliberately when you mean to.
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+
+      - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
+        with:
+          enablement: true
+
+      # Install this repo's dependencies BEFORE caching (R3-567). NON-FATAL, and
+      # conditional on a lockfile: with none present, cache-zip falls back to
+      # the package CDN on its own.
+      - name: Install dependencies (for the lockset; optional)
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci --ignore-scripts --no-audit --no-fund || \
+              echo "::warning::npm ci failed; cache-zip will fall back to the package CDN"
+          else
+            echo "no package-lock.json — skipping install; cache-zip will use the package CDN"
+          fi
+
+      # Two keys for the same build: the branch name (what apps booted by branch
+      # probe) and the pushing commit's sha (what a commit-pinned library mount
+      # probes — site-main COW.ts mountGitHubRepository -> cachedZipUrl uses the
+      # pin verbatim).
+      - name: Build cache zip
+        run: |
+          for ref in "${{ github.ref_name }}" "${{ github.sha }}"; do
+            npx -y @immediately-run/cli@0.8.2 cache-zip \
+              --owner "${{ github.repository_owner }}" \
+              --repo "${{ github.event.repository.name }}" \
+              --ref "$ref" \
+              --default-branch "${{ github.event.repository.default_branch }}" \
+              --bundle-packages \
+              --out "_site/cached_repositories/$ref.zip"
+          done
+
+      - name: Write index.html
+        run: |
+          cat > _site/index.html <<'HTML'
+          <!doctype html><meta charset="utf-8">
+          <title>immediately.run cache</title>
+          <p>This site hosts a pre-cached build of this repository for
+          <a href="https://immediately.run">immediately.run</a>.</p>
+          HTML
+
+      - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
