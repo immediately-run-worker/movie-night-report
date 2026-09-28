@@ -1,29 +1,8 @@
-:root {
-  --bg: #0c0f16;
-  --surface: #161b26;
-  --surface-2: #1d2432;
-  --line: #2b3446;
-  --text: #edeae3;
-  --muted: #b7bec9;
-  --accent: #e8b64c;
-  --accent-soft: #f0cd7e;
-  --accent-ink: #191204;
-}
+/* Report layout. Colors come from the tokens in index.css (the movie-night
+   palette at its end) — never hard-code them here. */
 
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: "Avenir Next", "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-}
-
-a {
-  color: var(--accent-soft);
+.colophon a {
+  color: var(--accent-2);
 }
 
 :focus-visible {
@@ -44,6 +23,7 @@ a {
 
 .eyebrow {
   margin: 0 0 14px;
+  font-family: var(--mono);
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.22em;
@@ -53,18 +33,37 @@ a {
 
 .masthead h1 {
   margin: 0 0 18px;
+  font-family: var(--disp);
   font-size: clamp(38px, 6vw, 58px);
   line-height: 1.04;
   letter-spacing: -0.02em;
   font-weight: 800;
 }
 
-.lede {
+/* The host's MDX compiler adds a "#" permalink to headings (.ir-heading-anchor).
+   Hang it in the gutter and reveal it on hover/focus, so it never shifts the text. */
+.masthead h1 {
+  position: relative;
+}
+
+.masthead a.ir-heading-anchor {
+  position: absolute;
+  left: -0.8em;
+  color: var(--ink-2);
+  opacity: 0;
+}
+
+.masthead h1:hover a.ir-heading-anchor,
+.masthead a.ir-heading-anchor:focus-visible {
+  opacity: 1;
+}
+
+.lede p {
   margin: 0;
   max-width: 64ch;
   font-size: 17px;
   line-height: 1.65;
-  color: var(--muted);
+  color: var(--ink-2);
 }
 
 .chipbar {
@@ -76,7 +75,7 @@ a {
   gap: 10px;
   padding: 14px 0;
   margin-top: 28px;
-  background: rgba(12, 15, 22, 0.92);
+  background: var(--bar-bg);
   backdrop-filter: blur(8px);
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
@@ -87,8 +86,8 @@ a {
   padding: 8px 16px;
   border: 1px solid var(--line);
   border-radius: 999px;
-  background: var(--surface);
-  color: var(--text);
+  background: var(--panel);
+  color: var(--ink);
   font-size: 14px;
   font-weight: 600;
   text-decoration: none;
@@ -97,12 +96,12 @@ a {
 
 .chip:hover {
   border-color: var(--accent);
-  background: var(--surface-2);
-  color: var(--accent-soft);
+  background: var(--panel-2);
+  color: var(--accent-2);
 }
 
 .chip .chip-year {
-  color: var(--muted);
+  color: var(--ink-2);
   font-weight: 500;
   margin-left: 6px;
 }
@@ -133,7 +132,7 @@ a {
   width: 100%;
   border-radius: 12px;
   border: 1px solid var(--line);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
+  box-shadow: var(--shadow-poster);
 }
 
 .poster-fallback {
@@ -143,17 +142,18 @@ a {
   aspect-ratio: 2 / 3;
   border-radius: 12px;
   border: 1px solid var(--line);
-  background: linear-gradient(160deg, var(--surface-2), var(--surface));
+  background: linear-gradient(160deg, var(--panel-2), var(--panel));
   text-align: center;
   padding: 20px;
   font-size: 26px;
   font-weight: 800;
   letter-spacing: 0.04em;
-  color: var(--accent-soft);
+  color: var(--accent-2);
 }
 
 .film-title {
   margin: 0 0 10px;
+  font-family: var(--disp);
   font-size: 34px;
   line-height: 1.1;
   letter-spacing: -0.01em;
@@ -167,7 +167,7 @@ a {
   gap: 8px;
   margin: 0 0 14px;
   font-size: 14px;
-  color: var(--muted);
+  color: var(--ink-2);
 }
 
 .meta .dot {
@@ -178,10 +178,10 @@ a {
   margin: 0 0 16px;
   font-size: 17px;
   font-style: italic;
-  color: var(--accent-soft);
+  color: var(--accent-2);
 }
 
-.teaser {
+.teaser p {
   margin: 0 0 26px;
   max-width: 66ch;
   font-size: 16.5px;
@@ -194,7 +194,7 @@ a {
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--ink-2);
 }
 
 .cast-row {
@@ -217,7 +217,7 @@ a {
   object-fit: cover;
   object-position: 50% 22%;
   border: 2px solid var(--line);
-  background: var(--surface-2);
+  background: var(--panel-2);
   transition: border-color 160ms ease, transform 160ms ease;
 }
 
@@ -240,7 +240,7 @@ a {
   margin-top: 2px;
   font-size: 12.5px;
   line-height: 1.35;
-  color: var(--muted);
+  color: var(--ink-2);
 }
 
 .trailer-link {
@@ -258,7 +258,7 @@ a {
 }
 
 .trailer-link:hover {
-  background: var(--accent-soft);
+  background: var(--accent-2);
   transform: translateY(-1px);
 }
 
@@ -274,7 +274,7 @@ a {
   display: block;
   margin-top: 10px;
   font-size: 13px;
-  color: var(--muted);
+  color: var(--ink-2);
 }
 
 .colophon {
@@ -283,7 +283,7 @@ a {
   border-top: 1px solid var(--line);
   font-size: 13.5px;
   line-height: 1.7;
-  color: var(--muted);
+  color: var(--ink-2);
 }
 
 .colophon p {
@@ -298,6 +298,18 @@ a {
 
   .poster {
     max-width: 264px;
+  }
+
+  /* One swipeable row: wrapped, the sticky bar grew to ~150px on a phone and
+     hid the top of each film behind it (taller than .film's scroll margin). */
+  .chipbar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .chip {
+    flex: none;
   }
 }
 
