@@ -8,11 +8,27 @@ the repo so the report renders identically everywhere.
 
 Try this app on [immediately.run](https://immediately.run/present/github/immediately-run-worker/movie-night-report/main)
 
+## Where things are
+
+| Path | Holds |
+| --- | --- |
+| `src/content/report.mdx` | The masthead and colophon prose, and where the film list sits |
+| `src/data/movies.ts` | The five films: meta, tagline, teaser, cast and trailer |
+| `src/components/` | One component per file (chip bar, film section, poster, cast card) |
+| `src/assets/` | Posters and cast portraits, imported by `movies.ts` |
+
+The look (dark cinema, marquee gold) is a set of token overrides at the end of
+`src/index.css`; light or dark follows the immediately.run theme.
+
 ## Run locally
 
 ```bash
-npx @immediately-run/cli dev
+npm install
+npm run dev                  # vite, no host
+npx @immediately-run/cli dev # the working tree on immediately.run itself
 ```
+
+`npm run build` and `npm run lint` must both pass before you push.
 
 ## Sources
 
